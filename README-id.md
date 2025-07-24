@@ -1,4 +1,3 @@
-```markdown
 # MoneyPrinterTurbo 💸
 
 [![GitHub stars](https://img.shields.io/github/stars/harry0703/MoneyPrinterTurbo.svg?style=for-the-badge)](https://github.com/harry0703/MoneyPrinterTurbo/stargazers)
