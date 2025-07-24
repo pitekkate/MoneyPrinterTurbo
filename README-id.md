@@ -5,7 +5,7 @@
 [![GitHub forks](https://img.shields.io/github/forks/harry0703/MoneyPrinterTurbo.svg?style=for-the-badge)](https://github.com/harry0703/MoneyPrinterTurbo/network)
 [![GitHub license](https://img.shields.io/github/license/harry0703/MoneyPrinterTurbo.svg?style=for-the-badge)](https://github.com/harry0703/MoneyPrinterTurbo/blob/main/LICENSE)
 
-简体中文 | [English](README-en.md) | Bahasa Indonesia
+[English](README-en.md) | [简体中文](README.md) | Bahasa Indonesia
 
 [![Trend Shift](https://trendshift.io/api/badge/repositories/8731)](https://trendshift.io/repositories/8731)
 
@@ -46,8 +46,6 @@ Picwish berfokus pada bidang pemrosesan gambar, menyediakan berbagai alat pemros
 - [x] Sumber materi video berdefinisi tinggi dan bebas royalti, dan Anda juga dapat menggunakan materi lokal Anda sendiri
 - [x] Mendukung integrasi dengan berbagai model seperti OpenAI, Moonshot, Azure, gpt4free, one-api, Qwen, Google Qwen, Ollama, DeepSeek, ERNIE, Pollinations, OpenRouter dan lainnya
 
-> Pengguna Tiongkok disarankan menggunakan **DeepSeek** atau **Moonshot** sebagai penyedia model besar (dapat diakses langsung dalam negeri, tidak perlu VPN. Pendaftaran memberikan kuota, cukup untuk penggunaan dasar).
-
 ## Rencana Mendatang 📅
 
 - [ ] Dukungan dubbing GPT-SoVITS
@@ -83,10 +81,8 @@ Ingin mencoba MoneyPrinterTurbo tanpa mengatur lingkungan lokal? Jalankan langsu
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1uBpT23JMtO-oO7V1pKTCGzCJ9L1sG1dB?usp=sharing)
 
-### Paket Startup Windows
+### Windows
 
-- Unduh paket startup satu klik, ekstrak dan gunakan langsung (hindari karakter Tiongkok, karakter khusus, dan spasi dalam jalur)
-- Baidu Netdisk (v1.2.6): https://pan.baidu.com/s/1wg0UaIyXpO3SqIpaq790SQ?pwd=sbqx Kode Ekstrak: sbqx
 - Google Drive (v1.2.6): https://drive.google.com/file/d/1HsbzfT7XunkrCrHw5ncUjFX8XX4zAuUh/view?usp=sharing
 
 Setelah mengunduh, disarankan untuk mengklik dua kali `update.bat` terlebih dahulu untuk memperbarui ke kode terbaru, lalu mengklik dua kali `start.bat` untuk memulai.
@@ -100,9 +96,6 @@ Paket startup satu klik belum dibuat. Lihat bagian Instalasi & Penerapan di bawa
 ## Instalasi & Penerapan 📥
 
 ### Prasyarat
-
-- Usahakan jangan menggunakan jalur dengan karakter Tiongkok untuk menghindari masalah yang tidak terduga.
-- Pastikan koneksi internet Anda normal. VPN perlu diatur ke mode `lalu lintas global`.
 
 #### ① Klon Proyek
 
