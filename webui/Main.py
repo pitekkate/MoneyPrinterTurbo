@@ -88,7 +88,7 @@ support_locales = [
     "de-DE",
     "en-US",
     "fr-FR",
-    "id-ID",
+    "id-ID", 
     "vi-VN",
     "th-TH",
 ]
@@ -200,7 +200,7 @@ if not config.app.get("hide_config", False):
                 "Cloudflare",
                 "ERNIE",
                 "Pollinations",
-                "OpenRouter",  # <<<<<<<<< Tambahkan OpenRouter
+                "OpenRouter", 
             ]
             saved_llm_provider = config.app.get("llm_provider", "OpenAI").lower()
             saved_llm_provider_index = 0
@@ -342,24 +342,28 @@ if not config.app.get("hide_config", False):
                             - **Base Url**: Default is https://text.pollinations.ai/openai
                             - **Model Name**: Use 'openai-fast' or specify a model name
                             """
-            # <<<<<<<<< Tambahkan konfigurasi untuk OpenRouter
             if llm_provider == "openrouter":
                 if not llm_model_name:
-                    llm_model_name = "openai/gpt-3.5-turbo" # Default model untuk OpenRouter
+                    llm_model_name = "openai/gpt-3.5-turbo" # Model default untuk OpenRouter
                 with llm_helper:
                     tips = """
-                            ##### OpenRouter Configuration
-                            - **API Key**: [Get your API key here](https://openrouter.ai/keys)
-                            - **Base Url**: Leave blank (defaults to https://openrouter.ai/api/v1)
-                            - **Model Name**: Choose any model from [OpenRouter Models](https://openrouter.ai/models), e.g., `openai/gpt-4`, `anthropic/claude-3-haiku`, `meta-llama/llama-3-8b-instruct`
+                            ##### Konfigurasi OpenRouter
+                            - **API Key**: [Dapatkan API key Anda di sini](https://openrouter.ai/keys)
+                            - **Base Url**: Biarkan kosong (default ke https://openrouter.ai/api/v1)
+                            - **Model Name**: Pilih model apa pun dari [Model OpenRouter](https://openrouter.ai/models), contoh: `openai/gpt-4`, `anthropic/claude-3-haiku`, `meta-llama/llama-3-8b-instruct`
                             """
-            # <<<<<<<<< Akhir konfigurasi OpenRouter
-            
+
+            # Tampilkan tips dan input berdasarkan bahasa
+            # Tampilkan peringatan khusus untuk pengguna Tiongkok
             if tips and config.ui["language"] == "zh":
                 st.warning(
                     "中国用户建议使用 **DeepSeek** 或 **Moonshot** 作为大模型提供商\n- 国内可直接访问，不需要VPN \n- 注册就送额度，基本够用"
                 )
                 st.info(tips)
+            # Tampilkan tips untuk bahasa non-Tiongkok (termasuk Indonesia)
+            elif tips: 
+                 st.info(tips) # Tampilkan tips untuk bahasa non-Tiongkok (termasuk Indonesia)
+            
             st_llm_api_key = st.text_input(
                 tr("API Key"), value=llm_api_key, type="password"
             )
@@ -464,4 +468,416 @@ with left_panel:
         params.video_script = st.text_area(
             tr("Video Script"), value=st.session_state["video_script"], height=280
         )
-        if st.button(tr("Generate Video Keywords"), key="auto_ge
+        if st.button(tr("Generate Video Keywords"), key="auto_generate_terms"):
+            if not params.video_script:
+                st.error(tr("Please Enter the Video Subject"))
+                st.stop()
+            with st.spinner(tr("Generating Video Keywords")):
+                terms = llm.generate_terms(params.video_subject, params.video_script)
+                if "Error: " in terms:
+                    st.error(tr(terms))
+                else:
+                    st.session_state["video_terms"] = ", ".join(terms)
+        params.video_terms = st.text_area(
+            tr("Video Keywords"), value=st.session_state["video_terms"]
+        )
+with middle_panel:
+    with st.container(border=True):
+        st.write(tr("Video Settings"))
+        video_concat_modes = [
+            (tr("Sequential"), "sequential"),
+            (tr("Random"), "random"),
+        ]
+        video_sources = [
+            (tr("Pexels"), "pexels"),
+            (tr("Pixabay"), "pixabay"),
+            (tr("Local file"), "local"),
+            (tr("TikTok"), "douyin"),
+            (tr("Bilibili"), "bilibili"),
+            (tr("Xiaohongshu"), "xiaohongshu"),
+        ]
+        saved_video_source_name = config.app.get("video_source", "pexels")
+        saved_video_source_index = [v[1] for v in video_sources].index(
+            saved_video_source_name
+        )
+        selected_index = st.selectbox(
+            tr("Video Source"),
+            options=range(len(video_sources)),
+            format_func=lambda x: video_sources[x][0],
+            index=saved_video_source_index,
+        )
+        params.video_source = video_sources[selected_index][1]
+        config.app["video_source"] = params.video_source
+        if params.video_source == "local":
+            uploaded_files = st.file_uploader(
+                "Upload Local Files",
+                type=["mp4", "mov", "avi", "flv", "mkv", "jpg", "jpeg", "png"],
+                accept_multiple_files=True,
+            )
+        selected_index = st.selectbox(
+            tr("Video Concat Mode"),
+            index=1,
+            options=range(
+                len(video_concat_modes)
+            ),  # Use the index as the internal option value
+            format_func=lambda x: video_concat_modes[x][
+                0
+            ],  # The label is displayed to the user
+        )
+        params.video_concat_mode = VideoConcatMode(
+            video_concat_modes[selected_index][1]
+        )
+        # 视频转场模式
+        video_transition_modes = [
+            (tr("None"), VideoTransitionMode.none.value),
+            (tr("Shuffle"), VideoTransitionMode.shuffle.value),
+            (tr("FadeIn"), VideoTransitionMode.fade_in.value),
+            (tr("FadeOut"), VideoTransitionMode.fade_out.value),
+            (tr("SlideIn"), VideoTransitionMode.slide_in.value),
+            (tr("SlideOut"), VideoTransitionMode.slide_out.value),
+        ]
+        selected_index = st.selectbox(
+            tr("Video Transition Mode"),
+            options=range(len(video_transition_modes)),
+            format_func=lambda x: video_transition_modes[x][0],
+            index=0,
+        )
+        params.video_transition_mode = VideoTransitionMode(
+            video_transition_modes[selected_index][1]
+        )
+        video_aspect_ratios = [
+            (tr("Portrait"), VideoAspect.portrait.value),
+            (tr("Landscape"), VideoAspect.landscape.value),
+        ]
+        selected_index = st.selectbox(
+            tr("Video Ratio"),
+            options=range(
+                len(video_aspect_ratios)
+            ),  # Use the index as the internal option value
+            format_func=lambda x: video_aspect_ratios[x][
+                0
+            ],  # The label is displayed to the user
+        )
+        params.video_aspect = VideoAspect(video_aspect_ratios[selected_index][1])
+        params.video_clip_duration = st.selectbox(
+            tr("Clip Duration"), options=[2, 3, 4, 5, 6, 7, 8, 9, 10], index=1
+        )
+        params.video_count = st.selectbox(
+            tr("Number of Videos Generated Simultaneously"),
+            options=[1, 2, 3, 4, 5],
+            index=0,
+        )
+    with st.container(border=True):
+        st.write(tr("Audio Settings"))
+        # 添加TTS服务器选择下拉框
+        tts_servers = [
+            ("azure-tts-v1", "Azure TTS V1"),
+            ("azure-tts-v2", "Azure TTS V2"),
+            ("siliconflow", "SiliconFlow TTS"),
+        ]
+        # 获取保存的TTS服务器，默认为v1
+        saved_tts_server = config.ui.get("tts_server", "azure-tts-v1")
+        saved_tts_server_index = 0
+        for i, (server_value, _) in enumerate(tts_servers):
+            if server_value == saved_tts_server:
+                saved_tts_server_index = i
+                break
+        selected_tts_server_index = st.selectbox(
+            tr("TTS Servers"),
+            options=range(len(tts_servers)),
+            format_func=lambda x: tts_servers[x][1],
+            index=saved_tts_server_index,
+        )
+        selected_tts_server = tts_servers[selected_tts_server_index][0]
+        config.ui["tts_server"] = selected_tts_server
+        # 根据选择的TTS服务器获取声音列表
+        filtered_voices = []
+        if selected_tts_server == "siliconflow":
+            # 获取硅基流动的声音列表
+            filtered_voices = voice.get_siliconflow_voices()
+        else:
+            # 获取Azure的声音列表
+            all_voices = voice.get_all_azure_voices(filter_locals=None)
+            # 根据选择的TTS服务器筛选声音
+            for v in all_voices:
+                if selected_tts_server == "azure-tts-v2":
+                    # V2版本的声音名称中包含"v2"
+                    if "V2" in v:
+                        filtered_voices.append(v)
+                else:
+                    # V1版本的声音名称中不包含"v2"
+                    if "V2" not in v:
+                        filtered_voices.append(v)
+        friendly_names = {
+            v: v.replace("Female", tr("Female"))
+            .replace("Male", tr("Male"))
+            .replace("Neural", "")
+            for v in filtered_voices
+        }
+        saved_voice_name = config.ui.get("voice_name", "")
+        saved_voice_name_index = 0
+        # 检查保存的声音是否在当前筛选的声音列表中
+        if saved_voice_name in friendly_names:
+            saved_voice_name_index = list(friendly_names.keys()).index(saved_voice_name)
+        else:
+            # 如果不在，则根据当前UI语言选择一个默认声音
+            for i, v in enumerate(filtered_voices):
+                if v.lower().startswith(st.session_state["ui_language"].lower()):
+                    saved_voice_name_index = i
+                    break
+        # 如果没有找到匹配的声音，使用第一个声音
+        if saved_voice_name_index >= len(friendly_names) and friendly_names:
+            saved_voice_name_index = 0
+        # 确保有声音可选
+        if friendly_names:
+            selected_friendly_name = st.selectbox(
+                tr("Speech Synthesis"),
+                options=list(friendly_names.values()),
+                index=min(saved_voice_name_index, len(friendly_names) - 1)
+                if friendly_names
+                else 0,
+            )
+            voice_name = list(friendly_names.keys())[
+                list(friendly_names.values()).index(selected_friendly_name)
+            ]
+            params.voice_name = voice_name
+            config.ui["voice_name"] = voice_name
+        else:
+            # 如果没有声音可选，显示提示信息
+            st.warning(
+                tr(
+                    "No voices available for the selected TTS server. Please select another server."
+                )
+            )
+            params.voice_name = ""
+            config.ui["voice_name"] = ""
+        # 只有在有声音可选时才显示试听按钮
+        if friendly_names and st.button(tr("Play Voice")):
+            play_content = params.video_subject
+            if not play_content:
+                play_content = params.video_script
+            if not play_content:
+                play_content = tr("Voice Example")
+            with st.spinner(tr("Synthesizing Voice")):
+                temp_dir = utils.storage_dir("temp", create=True)
+                audio_file = os.path.join(temp_dir, f"tmp-voice-{str(uuid4())}.mp3")
+                sub_maker = voice.tts(
+                    text=play_content,
+                    voice_name=voice_name,
+                    voice_rate=params.voice_rate,
+                    voice_file=audio_file,
+                    voice_volume=params.voice_volume,
+                )
+                # if the voice file generation failed, try again with a default content.
+                if not sub_maker:
+                    play_content = "This is a example voice. if you hear this, the voice synthesis failed with the original content."
+                    sub_maker = voice.tts(
+                        text=play_content,
+                        voice_name=voice_name,
+                        voice_rate=params.voice_rate,
+                        voice_file=audio_file,
+                        voice_volume=params.voice_volume,
+                    )
+                if sub_maker and os.path.exists(audio_file):
+                    st.audio(audio_file, format="audio/mp3")
+                    if os.path.exists(audio_file):
+                        os.remove(audio_file)
+        # 当选择V2版本或者声音是V2声音时，显示服务区域和API key输入框
+        if selected_tts_server == "azure-tts-v2" or (
+            voice_name and voice.is_azure_v2_voice(voice_name)
+        ):
+            saved_azure_speech_region = config.azure.get("speech_region", "")
+            saved_azure_speech_key = config.azure.get("speech_key", "")
+            azure_speech_region = st.text_input(
+                tr("Speech Region"),
+                value=saved_azure_speech_region,
+                key="azure_speech_region_input",
+            )
+            azure_speech_key = st.text_input(
+                tr("Speech Key"),
+                value=saved_azure_speech_key,
+                type="password",
+                key="azure_speech_key_input",
+            )
+            config.azure["speech_region"] = azure_speech_region
+            config.azure["speech_key"] = azure_speech_key
+        # 当选择硅基流动时，显示API key输入框和说明信息
+        if selected_tts_server == "siliconflow" or (
+            voice_name and voice.is_siliconflow_voice(voice_name)
+        ):
+            saved_siliconflow_api_key = config.siliconflow.get("api_key", "")
+            siliconflow_api_key = st.text_input(
+                tr("SiliconFlow API Key"),
+                value=saved_siliconflow_api_key,
+                type="password",
+                key="siliconflow_api_key_input",
+            )
+            # 显示硅基流动的说明信息
+            st.info(
+                tr("SiliconFlow TTS Settings")
+                + ":\n"
+                + "- "
+                + tr("Speed: Range [0.25, 4.0], default is 1.0")
+                + "\n"
+                + "- "
+                + tr("Volume: Uses Speech Volume setting, default 1.0 maps to gain 0")
+            )
+            config.siliconflow["api_key"] = siliconflow_api_key
+        params.voice_volume = st.selectbox(
+            tr("Speech Volume"),
+            options=[0.6, 0.8, 1.0, 1.2, 1.5, 2.0, 3.0, 4.0, 5.0],
+            index=2,
+        )
+        params.voice_rate = st.selectbox(
+            tr("Speech Rate"),
+            options=[0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 1.8, 2.0],
+            index=2,
+        )
+        bgm_options = [
+            (tr("No Background Music"), ""),
+            (tr("Random Background Music"), "random"),
+            (tr("Custom Background Music"), "custom"),
+        ]
+        selected_index = st.selectbox(
+            tr("Background Music"),
+            index=1,
+            options=range(
+                len(bgm_options)
+            ),  # Use the index as the internal option value
+            format_func=lambda x: bgm_options[x][
+                0
+            ],  # The label is displayed to the user
+        )
+        # Get the selected background music type
+        params.bgm_type = bgm_options[selected_index][1]
+        # Show or hide components based on the selection
+        if params.bgm_type == "custom":
+            custom_bgm_file = st.text_input(
+                tr("Custom Background Music File"), key="custom_bgm_file_input"
+            )
+            if custom_bgm_file and os.path.exists(custom_bgm_file):
+                params.bgm_file = custom_bgm_file
+                # st.write(f":red[已选择自定义背景音乐]：**{custom_bgm_file}**")
+        params.bgm_volume = st.selectbox(
+            tr("Background Music Volume"),
+            options=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+            index=2,
+        )
+with right_panel:
+    with st.container(border=True):
+        st.write(tr("Subtitle Settings"))
+        params.subtitle_enabled = st.checkbox(tr("Enable Subtitles"), value=True)
+        font_names = get_all_fonts()
+        saved_font_name = config.ui.get("font_name", "MicrosoftYaHeiBold.ttc")
+        saved_font_name_index = 0
+        if saved_font_name in font_names:
+            saved_font_name_index = font_names.index(saved_font_name)
+        params.font_name = st.selectbox(
+            tr("Font"), font_names, index=saved_font_name_index
+        )
+        config.ui["font_name"] = params.font_name
+        subtitle_positions = [
+            (tr("Top"), "top"),
+            (tr("Center"), "center"),
+            (tr("Bottom"), "bottom"),
+            (tr("Custom"), "custom"),
+        ]
+        selected_index = st.selectbox(
+            tr("Position"),
+            index=2,
+            options=range(len(subtitle_positions)),
+            format_func=lambda x: subtitle_positions[x][0],
+        )
+        params.subtitle_position = subtitle_positions[selected_index][1]
+        if params.subtitle_position == "custom":
+            custom_position = st.text_input(
+                tr("Custom Position (% from top)"),
+                value="70.0",
+                key="custom_position_input",
+            )
+            try:
+                params.custom_position = float(custom_position)
+                if params.custom_position < 0 or params.custom_position > 100:
+                    st.error(tr("Please enter a value between 0 and 100"))
+            except ValueError:
+                st.error(tr("Please enter a valid number"))
+        font_cols = st.columns([0.3, 0.7])
+        with font_cols[0]:
+            saved_text_fore_color = config.ui.get("text_fore_color", "#FFFFFF")
+            params.text_fore_color = st.color_picker(
+                tr("Font Color"), saved_text_fore_color
+            )
+            config.ui["text_fore_color"] = params.text_fore_color
+        with font_cols[1]:
+            saved_font_size = config.ui.get("font_size", 60)
+            params.font_size = st.slider(tr("Font Size"), 30, 100, saved_font_size)
+            config.ui["font_size"] = params.font_size
+        stroke_cols = st.columns([0.3, 0.7])
+        with stroke_cols[0]:
+            params.stroke_color = st.color_picker(tr("Stroke Color"), "#000000")
+        with stroke_cols[1]:
+            params.stroke_width = st.slider(tr("Stroke Width"), 0.0, 10.0, 1.5)
+start_button = st.button(tr("Generate Video"), use_container_width=True, type="primary")
+if start_button:
+    config.save_config()
+    task_id = str(uuid4())
+    if not params.video_subject and not params.video_script:
+        st.error(tr("Video Script and Subject Cannot Both Be Empty"))
+        scroll_to_bottom()
+        st.stop()
+    if params.video_source not in ["pexels", "pixabay", "local"]:
+        st.error(tr("Please Select a Valid Video Source"))
+        scroll_to_bottom()
+        st.stop()
+    if params.video_source == "pexels" and not config.app.get("pexels_api_keys", ""):
+        st.error(tr("Please Enter the Pexels API Key"))
+        scroll_to_bottom()
+        st.stop()
+    if params.video_source == "pixabay" and not config.app.get("pixabay_api_keys", ""):
+        st.error(tr("Please Enter the Pixabay API Key"))
+        scroll_to_bottom()
+        st.stop()
+    if uploaded_files:
+        local_videos_dir = utils.storage_dir("local_videos", create=True)
+        for file in uploaded_files:
+            file_path = os.path.join(local_videos_dir, f"{file.file_id}_{file.name}")
+            with open(file_path, "wb") as f:
+                f.write(file.getbuffer())
+                m = MaterialInfo()
+                m.provider = "local"
+                m.url = file_path
+                if not params.video_materials:
+                    params.video_materials = []
+                params.video_materials.append(m)
+    log_container = st.empty()
+    log_records = []
+    def log_received(msg):
+        if config.ui["hide_log"]:
+            return
+        with log_container:
+            log_records.append(msg)
+            st.code("\n".join(log_records))
+    logger.add(log_received)
+    st.toast(tr("Generating Video"))
+    logger.info(tr("Start Generating Video"))
+    logger.info(utils.to_json(params))
+    scroll_to_bottom()
+    result = tm.start(task_id=task_id, params=params)
+    if not result or "videos" not in result:
+        st.error(tr("Video Generation Failed"))
+        logger.error(tr("Video Generation Failed"))
+        scroll_to_bottom()
+        st.stop()
+    video_files = result.get("videos", [])
+    st.success(tr("Video Generation Completed"))
+    try:
+        if video_files:
+            player_cols = st.columns(len(video_files) * 2 + 1)
+            for i, url in enumerate(video_files):
+                player_cols[i * 2 + 1].video(url)
+    except Exception:
+        pass
+    open_task_folder(task_id)
+    logger.info(tr("Video Generation Completed"))
+    scroll_to_bottom()
+config.save_config()
