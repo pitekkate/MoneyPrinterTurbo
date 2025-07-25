@@ -1,4 +1,4 @@
-            import json
+import json
 import logging
 import re
 import requests
@@ -12,7 +12,6 @@ from openai.types.chat import ChatCompletion
 from app.config import config
 
 _max_retries = 5
-
 
 def _generate_response(prompt: str) -> str:
     try:
