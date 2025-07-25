@@ -79,7 +79,7 @@ Picwish berfokus pada bidang pemrosesan gambar, menyediakan berbagai alat pemros
 
 Ingin mencoba MoneyPrinterTurbo tanpa mengatur lingkungan lokal? Jalankan langsung di Google Colab!
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1uBpT23JMtO-oO7V1pKTCGzCJ9L1sG1dB?usp=sharing)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pitekkate/MoneyPrinterTurbo/blob/main/docs/MoneyPrinterTurbo.ipynb)
 
 ### Windows
 
